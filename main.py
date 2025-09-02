@@ -5,7 +5,6 @@ import os
 import streamlit as st
 from typing import Annotated
 from typing_extensions import TypedDict
-from dotenv import load_dotenv
 import uuid
 
 from langgraph.graph import StateGraph, START, END
@@ -19,14 +18,11 @@ from langchain_core.messages import HumanMessage, AIMessage
 # ---------------------------
 # Load environment variables
 # ---------------------------
-# Try to load .env file (for local development)
+# Get API key from Streamlit secrets or environment variables
 try:
-    load_dotenv()
-except:
-    pass  # .env file not required for Streamlit Cloud
-
-# Get API key from environment or Streamlit secrets
-groq_api_key = os.getenv("GROQ_API_KEY") or st.secrets.get("GROQ_API_KEY")
+    groq_api_key = st.secrets["GROQ_API_KEY"]
+except (KeyError, FileNotFoundError):
+    groq_api_key = os.getenv("GROQ_API_KEY")
 
 if not groq_api_key:
     st.error("🔑 **API Key Required!**")
