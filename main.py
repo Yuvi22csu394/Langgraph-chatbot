@@ -19,10 +19,30 @@ from langchain_core.messages import HumanMessage, AIMessage
 # Load environment variables
 # ---------------------------
 # Get API key from Streamlit secrets or environment variables
+groq_api_key = None
+
+# Try multiple ways to get the API key
 try:
-    groq_api_key = st.secrets["GROQ_API_KEY"]
-except (KeyError, FileNotFoundError):
-    groq_api_key = os.getenv("GROQ_API_KEY")
+    # Method 1: Streamlit secrets
+    if hasattr(st, 'secrets') and 'GROQ_API_KEY' in st.secrets:
+        groq_api_key = st.secrets['GROQ_API_KEY']
+    # Method 2: Environment variable
+    elif os.getenv('GROQ_API_KEY'):
+        groq_api_key = os.getenv('GROQ_API_KEY')
+    # Method 3: Alternative secret key names
+    elif hasattr(st, 'secrets') and 'groq_api_key' in st.secrets:
+        groq_api_key = st.secrets['groq_api_key']
+except Exception as e:
+    st.error(f"Error accessing secrets: {e}")
+
+# Debug information (remove this after it works)
+if st.checkbox("🔍 Debug API Key Status"):
+    st.write("**Debug Info:**")
+    st.write(f"- st.secrets available: {hasattr(st, 'secrets')}")
+    if hasattr(st, 'secrets'):
+        st.write(f"- Keys in secrets: {list(st.secrets.keys())}")
+    st.write(f"- Environment GROQ_API_KEY: {'✅ Set' if os.getenv('GROQ_API_KEY') else '❌ Not set'}")
+    st.write(f"- Final API key status: {'✅ Found' if groq_api_key else '❌ Missing'}")
 
 if not groq_api_key:
     st.error("🔑 **API Key Required!**")
@@ -30,6 +50,12 @@ if not groq_api_key:
     st.write("1. **Streamlit Cloud**: Add `GROQ_API_KEY` in App Settings → Secrets")
     st.write("2. **Local Development**: Create `.env` file with `GROQ_API_KEY=your_key`")
     st.write("3. **Get API Key**: Visit [Groq Console](https://console.groq.com/)")
+    
+    # Show how to format secrets
+    st.code('''
+# In Streamlit Cloud Secrets, add:
+GROQ_API_KEY = "gsk_your_actual_key_here"
+    ''')
     st.stop()
 
 # Set the API key in environment
