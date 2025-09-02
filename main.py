@@ -19,13 +19,35 @@ from langchain_core.messages import HumanMessage, AIMessage
 # ---------------------------
 # Load environment variables
 # ---------------------------
-load_dotenv()
+# Try to load .env file (for local development)
+try:
+    load_dotenv()
+except:
+    pass  # .env file not required for Streamlit Cloud
+
+# Get API key from environment or Streamlit secrets
+groq_api_key = os.getenv("GROQ_API_KEY") or st.secrets.get("GROQ_API_KEY")
+
+if not groq_api_key:
+    st.error("🔑 **API Key Required!**")
+    st.write("Please set your Groq API key in one of these ways:")
+    st.write("1. **Streamlit Cloud**: Add `GROQ_API_KEY` in App Settings → Secrets")
+    st.write("2. **Local Development**: Create `.env` file with `GROQ_API_KEY=your_key`")
+    st.write("3. **Get API Key**: Visit [Groq Console](https://console.groq.com/)")
+    st.stop()
+
+# Set the API key in environment
+os.environ["GROQ_API_KEY"] = groq_api_key
 
 # Initialize LLM (Groq)
 try:
     llm = init_chat_model("groq:llama-3.1-8b-instant")
 except Exception as e:
     st.error(f"Failed to initialize LLM: {e}")
+    st.write("**Possible solutions:**")
+    st.write("- Verify your Groq API key is correct")
+    st.write("- Check your internet connection")
+    st.write("- Try refreshing the page")
     st.stop()
 
 # ---------------------------
